@@ -1,6 +1,91 @@
-'use strict';
-
-
+// Contact form submission logic
+document
+  .getElementById("contactForm")
+  ?.addEventListener("submit", async function (ev) {
+    ev.preventDefault();
+    const name = document.getElementById("name").value;
+    const email = document.getElementById("email").value;
+    const message = document.getElementById("message").value;
+    const form = document.getElementById("contactForm");
+    let msgBox = document.getElementById("contactMsgBox");
+    if (!msgBox) {
+      msgBox = document.createElement("div");
+      msgBox.id = "contactMsgBox";
+      msgBox.style.position = "fixed";
+      msgBox.style.top = "30px";
+      msgBox.style.left = "50%";
+      msgBox.style.transform = "translateX(-50%)";
+      msgBox.style.background = "#222";
+      msgBox.style.color = "#fff";
+      msgBox.style.padding = "18px 32px";
+      msgBox.style.borderRadius = "16px";
+      msgBox.style.boxShadow = "0 4px 24px rgba(0,0,0,0.18)";
+      msgBox.style.fontSize = "18px";
+      msgBox.style.zIndex = "9999";
+      msgBox.style.textAlign = "center";
+      document.body.appendChild(msgBox);
+    }
+    msgBox.style.display = "block";
+    msgBox.textContent = "Sending message...";
+    try {
+      const response = await fetch(
+        "https://email-server-ebon.vercel.app/api/send-support",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ name, email, message }),
+        }
+      );
+      if (response.ok) {
+        msgBox.textContent =
+          "✅ Your message was sent successfully! Thank you for reaching out.";
+        form.reset();
+        // Play sound on success
+        let snd = document.getElementById("contactSuccessSound");
+        if (!snd) {
+          snd = document.createElement("audio");
+          snd.id = "contactSuccessSound";
+          snd.src = "assets/sound/done.mp3";
+          snd.preload = "auto";
+          document.body.appendChild(snd);
+        }
+        snd.currentTime = 0;
+        snd.play();
+      } else {
+        msgBox.textContent =
+          "❌ Failed to send message. Please try again later.";
+        // Play error sound
+        let errSnd = document.getElementById("contactErrorSound");
+        if (!errSnd) {
+          errSnd = document.createElement("audio");
+          errSnd.id = "contactErrorSound";
+          errSnd.src = "assets/sound/error.mp3";
+          errSnd.preload = "auto";
+          document.body.appendChild(errSnd);
+        }
+        errSnd.currentTime = 0;
+        errSnd.play();
+      }
+    } catch (err) {
+      msgBox.textContent =
+        "❌ Error sending message. Please check your connection.";
+      // Play error sound
+      let errSnd = document.getElementById("contactErrorSound");
+      if (!errSnd) {
+        errSnd = document.createElement("audio");
+        errSnd.id = "contactErrorSound";
+        errSnd.src = "assets/sound/error.mp3";
+        errSnd.preload = "auto";
+        document.body.appendChild(errSnd);
+      }
+      errSnd.currentTime = 0;
+      errSnd.play();
+    }
+    setTimeout(() => {
+      msgBox.style.display = "none";
+    }, 4000);
+  });
+("use strict");
 
 /**
  * PRELOADER
@@ -13,8 +98,6 @@ window.addEventListener("DOMContentLoaded", function () {
   document.body.classList.add("loaded");
 });
 
-
-
 /**
  * add event on multiple elements
  */
@@ -23,9 +106,7 @@ const addEventOnElements = function (elements, eventType, callback) {
   for (let i = 0, len = elements.length; i < len; i++) {
     elements[i].addEventListener(eventType, callback);
   }
-}
-
-
+};
 
 /**
  * Mobile navbar toggle
@@ -48,8 +129,6 @@ addEventOnElements(navLinks, "click", function () {
   document.body.classList.remove("nav-active");
 });
 
-
-
 /**
  * Header active
  */
@@ -60,8 +139,6 @@ window.addEventListener("scroll", function () {
   header.classList[window.scrollY > 100 ? "add" : "remove"]("active");
 });
 
-
-
 /**
  * Element tilt effect
  */
@@ -69,7 +146,6 @@ window.addEventListener("scroll", function () {
 const tiltElements = document.querySelectorAll("[data-tilt]");
 
 const initTilt = function (event) {
-
   /** get tilt element center position */
   const centerX = this.offsetWidth / 2;
   const centerY = this.offsetHeight / 2;
@@ -77,17 +153,16 @@ const initTilt = function (event) {
   const tiltPosY = ((event.offsetX - centerX) / centerX) * 10;
   const tiltPosX = ((event.offsetY - centerY) / centerY) * 10;
 
-  this.style.transform = `perspective(1000px) rotateX(${tiltPosX}deg) rotateY(${tiltPosY - (tiltPosY * 2)}deg)`;
-
-}
+  this.style.transform = `perspective(1000px) rotateX(${tiltPosX}deg) rotateY(${
+    tiltPosY - tiltPosY * 2
+  }deg)`;
+};
 
 addEventOnElements(tiltElements, "mousemove", initTilt);
 
 addEventOnElements(tiltElements, "mouseout", function () {
   this.style.transform = `perspective(1000px) rotateX(0deg) rotateY(0deg)`;
 });
-
-
 
 /**
  * Tab content
@@ -100,37 +175,35 @@ let lastActiveTabBtn = tabBtns[0];
 let lastActiveTabContent = tabContents[0];
 
 const filterContent = function () {
-
   if (!(lastActiveTabBtn === this)) {
-
     lastActiveTabBtn.classList.remove("active");
     lastActiveTabContent.classList.remove("active");
 
     this.classList.add("active");
     lastActiveTabBtn = this;
 
-    const currentTabContent = document.querySelector(`[data-tab-content="${this.dataset.tabBtn}"]`);
+    const currentTabContent = document.querySelector(
+      `[data-tab-content="${this.dataset.tabBtn}"]`
+    );
 
     currentTabContent.classList.add("active");
     lastActiveTabContent = currentTabContent;
-
   }
-
-}
+};
 
 addEventOnElements(tabBtns, "click", filterContent);
-
-
 
 /**
  * Custom cursor
  */
 
 const cursors = document.querySelectorAll("[data-cursor]");
-const hoveredElements = [...document.querySelectorAll("button"), ...document.querySelectorAll("a")];
+const hoveredElements = [
+  ...document.querySelectorAll("button"),
+  ...document.querySelectorAll("a"),
+];
 
 window.addEventListener("mousemove", function (event) {
-
   const posX = event.clientX;
   const posY = event.clientY;
 
@@ -143,7 +216,6 @@ window.addEventListener("mousemove", function (event) {
     cursors[1].style.left = `${posX}px`;
     cursors[1].style.top = `${posY}px`;
   }, 80);
-
 });
 
 /** add hovered class when mouseover on hoverElements */
